@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.vtorshyn.voltdb.wifi</groupId>
+    <artifactId>Collector</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <dependencies>
+
+        <!-- This can be refined. This uber jar bundles everything. -->
+        <dependency>
+            <groupId>org.voltdb</groupId>
+            <artifactId>voltdb</artifactId>
+            <version>8.4</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.8.1</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.6</version>
+                <executions>
+                    <!-- Compile the voltdb catalog so that it is available for unit testing -->
+                    <execution>
+                        <phase>compile</phase>
+                        <configuration>
+                            <target>
+                                <java classname="org.voltdb.compiler.VoltCompiler" fork="yes" failonerror="true">
+                                    <jvmarg value="-Dlog4j.configuration=file:src/test/resources/log4j.properties"/>
+                                    <arg value="project.xml"/>
+                                    <arg value="${project.build.directory}/${project.build.finalName}-catalog.jar"/>
+                                    <classpath refid="maven.compile.classpath"/>
+                                    <assertions>
+                                        <disable/>
+                                    </assertions>
+                                </java>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>1.7</version>
+                <executions>
+                    <!-- Attach the voltdb catalog so that it gets uploaded to the maven repo -->
+                    <execution>
+                        <id>attach-artifacts</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>attach-artifact</goal>
+                        </goals>
+                        <configuration>
+                            <artifacts>
+                                <artifact>
+                                    <file>${project.build.directory}/${project.build.finalName}-catalog.jar</file>
+                                    <type>jar</type>
+                                    <classifier>catalog</classifier>
+                                </artifact>
+                            </artifacts>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+    </build>
+
+</project>
